@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 	"github.com/GoogleCloudPlatform/cloud-builders/gcs-fetcher/pkg/fetcher"
 
 	"cloud.google.com/go/storage"
-	"github.com/golang/glog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -21,7 +21,7 @@ import (
 
 const (
 	stagingFolder = ".download/"
-	userAgent     = "gae-fetcher"
+	userAgent     = "gcs-fetcher"
 
 	defaultWorkers = 200
 	defaultRetries = 3
@@ -44,25 +44,23 @@ func main() {
 	flag.Parse()
 
 	if *location == "" || *sourceType == "" {
-		glog.Fatal("Must specify --location and --type")
+		log.Fatal("Must specify --location and --type")
 	}
 
 	ctx := context.Background()
 	hc, err := buildHTTPClient(ctx)
 	if err != nil {
-		glog.Info(err)
-		os.Exit(2)
+		log.Fatal(err)
 	}
 
 	client, err := storage.NewClient(ctx, option.WithHTTPClient(hc), option.WithUserAgent(userAgent))
 	if err != nil {
-		glog.Infof("Failed to create new GCS client: %v", err)
-		os.Exit(2)
+		log.Fatalf("Failed to create new GCS client: %v", err)
 	}
 
 	bucket, object, generation, err := fetcher.ParseBucketObject(*location)
 	if err != nil {
-		glog.Fatalf("Failed to parse --location: %v", err)
+		log.Fatalf("Failed to parse --location: %v", err)
 	}
 
 	gcs := &fetcher.GCSFetcher{
@@ -82,7 +80,7 @@ func main() {
 		Verbose:     *verbose,
 	}
 	if err := gcs.Fetch(ctx); err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 }
 func buildHTTPClient(ctx context.Context) (*http.Client, error) {

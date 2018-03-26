@@ -3,7 +3,9 @@ steps:
   args: ['test', '--spawn_strategy=standalone', '//pkg/...']
 
 - name: 'gcr.io/cloud-builders/bazel'
-  args: ['run', '--spawn_strategy=standalone', '--define', 'project=$PROJECT_ID', '//cmd:push']
+  args: ['run', '--spawn_strategy=standalone', '--define', 'project=$PROJECT_ID', '//:push-gcs-fetcher']
+- name: 'gcr.io/cloud-builders/bazel'
+  args: ['run', '--spawn_strategy=standalone', '--define', 'project=$PROJECT_ID', '//:push-upload-manifest']
 
 # HACK: The previous step pushed the image directly to the registry, without
 # placing the image in the worker's local daemon. We need to pull the image
@@ -14,4 +16,4 @@ steps:
 
 images: ['gcr.io/$PROJECT_ID/gcs-fetcher']
 
-timeout: '900s'
+timeout: '1800s'
